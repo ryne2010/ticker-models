@@ -1,0 +1,16 @@
+services:
+  jupyter:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    environment:
+      - JUPYTER_TOKEN=hi
+    image: jupyter
+    container_name: jupyter
+    ports:
+      - 8888:8888
+    volumes:
+      - ./notebooks:/home/jovyan/notebooks
+      - ./config:/home/jovyan/.jupyter
+    working_dir: /home/jovyan/notebooks
+    restart: always
