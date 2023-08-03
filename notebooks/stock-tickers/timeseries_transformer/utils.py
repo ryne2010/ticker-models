@@ -132,14 +132,13 @@ def get_indices_entire_sequence(data: pd.DataFrame, window_size: int, step_size:
         return indices
 
 
-def read_data(data_dir: Union[str, Path] = "data",
-    timestamp_col_name: str="timestamp") -> pd.DataFrame:
+def read_data(filename: Union[str, Path] = "data") -> pd.DataFrame:
     """
     Read data from csv file and return pd.Dataframe object
 
     Args:
 
-        data_dir: str or Path object specifying the path to the directory
+        filename: str or Path object specifying the path to the directory
                   containing the data
 
         target_col_name: str, the name of the column containing the target variable
@@ -148,18 +147,23 @@ def read_data(data_dir: Union[str, Path] = "data",
                             containing the timestamps
     """
 
+
+
+
     # Ensure that `data_dir` is a Path object
-    data_dir = Path(data_dir)
+    data_dir = Path("data")
 
     # Read csv file
     csv_files = list(data_dir.glob("*.csv"))
 
-    if len(csv_files) > 1:
-        raise ValueError("data_dir contains more than 1 csv file. Must only contain 1")
-    elif len(csv_files) == 0:
-    	raise ValueError("data_dir must contain at least 1 csv file.")
+    # Check if no csv files
+    if len(csv_files) <= 0:
+        raise ValueError("data_dir must contain at least 1 csv file.")
 
+    # If filename, use as csv file, else use first
     data_path = csv_files[0]
+    if len(filename) > 0:
+        data_path = Path(f"data/{filename}.csv")
 
     print("Reading file in {}".format(data_path))
 

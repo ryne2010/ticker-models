@@ -27,17 +27,17 @@ timestamp_col = "timestamp"
 cutoff_date = datetime.datetime(2017, 1, 1) 
 
 ## Params
-dim_val = 512
+dim_val = 128
 n_heads = 8
 n_decoder_layers = 4
 n_encoder_layers = 4
-dec_seq_len = 92 # length of input given to decoder
-enc_seq_len = 153 # length of input given to encoder
+dec_seq_len = 23 # length of input given to decoder
+enc_seq_len = 38 # length of input given to encoder
 output_sequence_length = 48 # target sequence length. If hourly data and length = 48, you predict 2 days ahead
 window_size = enc_seq_len + output_sequence_length # used to slice data into sub-sequences
 step_size = 1 # Step size, i.e. how many time steps does the moving window move at each step
-in_features_encoder_linear_layer = 2048
-in_features_decoder_linear_layer = 2048
+in_features_encoder_linear_layer = 512
+in_features_decoder_linear_layer = 512
 max_seq_len = enc_seq_len
 batch_first = False
 
@@ -49,7 +49,7 @@ target_idx = 0 # index position of target in batched trg_y
 input_size = len(input_variables)
 
 # Read data
-data = utils.read_data(timestamp_col_name=timestamp_col)
+data = utils.read_data('dfs_merged_upload')
 
 # Remove test data from dataset
 training_data = data[:-(round(len(data)*test_size))]

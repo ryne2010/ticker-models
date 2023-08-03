@@ -1,44 +1,58 @@
 # ! Adaped from Jupyter Dockerstack recommended for Transformers (https://github.com/ToluClassics/transformers_notebook/blob/main/Dockerfile)
-FROM jupyter/base-notebook:latest
+# FROM jupyter/base-notebook
+# ! Adaped from Jupyter Dockerstack recommended for GPU-accellerated Transformers (https://github.com/b-data/jupyterlab-python-docker-stack/blob/main/CUDA.md)
+# FROM glcr.b-data.ch/jupyterlab/cuda/python/scipy
+# FROM python:3.11-slim-bookworm
+# FROM continuumio/miniconda3
+FROM jupyter/base-notebook:python-3.10.4
 
+# * Init & Config
 ENV TRANSFORMERS_CACHE=/tmp/.cache
 ENV TOKENIZERS_PARALLELISM=true
 
-# Add RUN statements to install packages as the $NB_USER defined in the base images.
-
-# Add a "USER root" statement followed by RUN statements to install system packages using apt-get,
-# change file permissions, etc.
-
-# If you do switch to root, always be sure to add a "USER $NB_USER" command at the end of the
-# file to ensure the image runs as a unprivileged user by default.
+# # Allows "conda create" to restart shell
+# SHELL ["bash", "-lc"]
 
 USER root
 
-RUN python3 -m pip install --no-cache-dir --upgrade pip && \
-    python3 -m pip install --no-cache-dir \
-    jupyter \
-    # tensorflow-cpu \
-    torch \
-    torchvision \
-    torchaudio
-    # jax \
-    # jaxlib \
-    # optax
+RUN python -m pip install --no-cache-dir --upgrade pip conda
+# RUN conda init
+RUN conda config --append channels conda-forge
 
-RUN python3 -m pip install --no-cache-dir \
+# * Install Basic Packages
+# # Prefer conda
+RUN conda install -c conda-forge jupyterlab
+RUN conda install -c anaconda ipykernel
+RUN conda install pytorch torchvision -c pytorch
+RUN conda install -c conda-forge pytorch-lightning
+RUN conda install \
+    pandas \
+    numpy \
+    matplotlib \
+    scikit-learn \
+    tqdm \
     transformers \
     datasets\
     nltk \
-    pytorch_lightning \
     gradio \
     sentencepiece \
     seqeval
+    # mwclient \
+    # yfinance \
+    # xgboost
+
+# * Create PyTorch env
+# RUN conda create -n "torchEnv" python=3.10 ipython
+# RUN conda activate "torchEnv"
+# RUN python -m ipykernel install --user --name=torchEnv
 
 # * Install from the requirements.txt file
 COPY --chown=${NB_UID}:${NB_GID} requirements.txt /tmp/
-RUN python3 -m pip install --no-cache-dir --requirement /tmp/requirements.txt
+# RUN python3 -m pip install --no-cache-dir --requirement /tmp/requirements.txt
+# RUN conda install -y -q --name torchEnv -c conda-forge --file /tmp/requirements.txt
+RUN conda install -y -q -c conda-forge --file /tmp/requirements.txt
 
-
-USER ${NB_UID}
-
+# * Cleanup
+# USER ${NB_UID}
+USER $NB_USER
 WORKDIR "${HOME}"
