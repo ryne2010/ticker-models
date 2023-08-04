@@ -1,16 +1,17 @@
 import os
-import torch
-from torch.utils.data import Dataset
+# import torch
+from tinygrad.tensor import Tensor
+# from torch.utils.data import Dataset
 import pandas as pd
 from typing import Tuple
 
-class TransformerDataset(Dataset):
+class TransformerDataset(pd.DataFrame):
     """
     Dataset class used for transformer models.
 
     """
     def __init__(self,
-        data: torch.tensor,
+        data: Tensor,
         indices: list,
         enc_seq_len: int,
         dec_seq_len: int,
@@ -47,7 +48,8 @@ class TransformerDataset(Dataset):
 
         self.data = data
 
-        print("From get_src_trg: data size = {}".format(data.size()))
+        # print("From get_src_trg: data size = {}".format(data.size()))
+        print("From get_src_trg: data size = {}".format(data))
 
         self.enc_seq_len = enc_seq_len
 
@@ -76,7 +78,7 @@ class TransformerDataset(Dataset):
 
         sequence = self.data[start_idx:end_idx]
 
-        #print("From __getitem__: sequence length = {}".format(len(sequence)))
+        #print("From __getitem__: sequence length = {}".format(sequence.shape[0]))
 
         src, trg, trg_y = self.get_src_trg(
             sequence=sequence,
@@ -85,55 +87,31 @@ class TransformerDataset(Dataset):
             target_seq_len=self.target_seq_len
             )
 
+        print(f"src shape: {src.shape}, trg shape: {trg.shape}, trg_y shape: {trg_y.shape}")
         return src, trg, trg_y
 
     def get_src_trg(
         self,
-        sequence: torch.Tensor,
+        sequence: Tensor,
         enc_seq_len: int,
         dec_seq_len: int,
         target_seq_len: int
-        ) -> Tuple[torch.tensor, torch.tensor, torch.tensor]:
+        ) -> Tuple[Tensor, Tensor, Tensor]:
+        # print('sequence before slicing', sequence)
 
-        """
-        Generate the src (encoder input), trg (decoder input) and trg_y (the target)
-        sequences from a sequence.
-
-        Args:
-
-            sequence: tensor, a 1D tensor of length n where
-                    n = encoder input length + target sequence length
-
-            enc_seq_len: int, the desired length of the input to the transformer encoder
-
-            target_seq_len: int, the desired length of the target sequence (the
-                            one against which the model output is compared)
-
-        Return:
-
-            src: tensor, 1D, used as input to the transformer model
-
-            trg: tensor, 1D, used as input to the transformer model
-
-            trg_y: tensor, 1D, the target sequence against which the model output
-                is compared when computing loss.
-
-        """
-        assert len(sequence) == enc_seq_len + target_seq_len, "Sequence length does not equal (input length + target length)"
+        assert sequence.shape[0] == enc_seq_len + target_seq_len, "Sequence length does not equal (input length + target length)"
 
         # encoder input
-        src = sequence[:enc_seq_len]
+        src = sequence[:enc_seq_len, :]
 
-        # decoder input. As per the paper, it must have the same dimension as the
-        # target sequence, and it must contain the last value of src, and all
-        # values of trg_y except the last (i.e. it must be shifted right by 1)
-        trg = sequence[enc_seq_len-1:len(sequence)-1]
+        # decoder input
+        trg = sequence[enc_seq_len-1:sequence.shape[0]-1, :]
 
-        assert len(trg) == target_seq_len, "Length of trg does not match target sequence length"
+        assert trg.shape[0] == target_seq_len, "Length of trg does not match target sequence length"
 
-        # The target sequence against which the model output will be compared to compute loss
-        trg_y = sequence[-target_seq_len:]
+        # The target sequence
+        trg_y = sequence[-target_seq_len:, :]
 
-        assert len(trg_y) == target_seq_len, "Length of trg_y does not match target sequence length"
+        assert trg_y.shape[0] == target_seq_len, "Length of trg_y does not match target sequence length"
 
-        return src, trg, trg_y.squeeze(-1) # change size from [batch_size, target_seq_len, num_features] to [batch_size, target_seq_len]
+        return src, trg, trg_y.squeeze(-1)

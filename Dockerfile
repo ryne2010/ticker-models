@@ -4,7 +4,7 @@
 # FROM glcr.b-data.ch/jupyterlab/cuda/python/scipy
 # FROM python:3.11-slim-bookworm
 # FROM continuumio/miniconda3
-FROM jupyter/base-notebook:python-3.10.4
+FROM jupyter/minimal-notebook:python-3.10.4
 
 # * Init & Config
 ENV TRANSFORMERS_CACHE=/tmp/.cache
@@ -15,7 +15,7 @@ ENV TOKENIZERS_PARALLELISM=true
 
 USER root
 
-RUN python -m pip install --no-cache-dir --upgrade pip conda
+RUN python3 -m pip install --no-cache-dir --upgrade pip conda
 # RUN conda init
 RUN conda config --append channels conda-forge
 
@@ -40,6 +40,9 @@ RUN conda install \
     # mwclient \
     # yfinance \
     # xgboost
+RUN conda install -c conda-forge pyopencl
+# # Install TinyGrad
+RUN python3 -m pip install --no-cache-dir git+https://git@github.com/geohot/tinygrad.git
 
 # * Create PyTorch env
 # RUN conda create -n "torchEnv" python=3.10 ipython
