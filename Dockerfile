@@ -21,26 +21,29 @@ RUN conda config --append channels conda-forge
 
 # * Install Basic Packages
 # # Prefer conda
-RUN conda install -c conda-forge jupyterlab
-RUN conda install -c anaconda ipykernel
-RUN conda install pytorch torchvision -c pytorch
-RUN conda install -c conda-forge pytorch-lightning
 RUN conda install \
-    pandas \
+    gradio \
+    transformers \
+    datasets \
+    gluonts
+RUN conda install \
     numpy \
+    pandas \
     matplotlib \
     scikit-learn \
+    seqeval \
     tqdm \
-    transformers \
-    datasets\
     nltk \
-    gradio \
     sentencepiece \
-    seqeval
-    # mwclient \
-    # yfinance \
-    # xgboost
-RUN conda install -c conda-forge pyopencl
+    ipykernel \
+    ipywidgets \
+    mwclient \
+    yfinance \
+    xgboost \
+    gluonts \
+    evaluate
+RUN conda install -c pytorch pytorch torchvision
+RUN conda install -c conda-forge pytorch-lightning pyopencl accelerate
 # # Install TinyGrad
 RUN python3 -m pip install --no-cache-dir git+https://git@github.com/geohot/tinygrad.git
 
