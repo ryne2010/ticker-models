@@ -78,6 +78,11 @@ class TransformerDataset(Dataset):
 
         #print("From __getitem__: sequence length = {}".format(len(sequence)))
 
+        # Check if this is the last batch and if padding is needed
+        if index == len(self) - 1 and (end_idx - start_idx) < (self.enc_seq_len + self.target_seq_len):
+            padding_length = (self.enc_seq_len + self.target_seq_len) - (end_idx - start_idx)
+            sequence = torch.nn.functional.pad(sequence, (0, padding_length), 'constant', 0)
+
         src, trg, trg_y = self.get_src_trg(
             sequence=sequence,
             enc_seq_len=self.enc_seq_len,
@@ -135,5 +140,9 @@ class TransformerDataset(Dataset):
         trg_y = sequence[-target_seq_len:]
 
         assert len(trg_y) == target_seq_len, "Length of trg_y does not match target sequence length"
+
+        # print(f"src shape: {src.shape}")
+        # print(f"trg shape: {trg.shape}")
+        # print(f"trg_y shape: {trg_y.shape}")
 
         return src, trg, trg_y.squeeze(-1) # change size from [batch_size, target_seq_len, num_features] to [batch_size, target_seq_len]

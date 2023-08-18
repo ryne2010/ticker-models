@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 
-def generate_square_subsequent_mask(dim1: int, dim2: int) -> Tensor:
+def generate_square_subsequent_mask(dim1: int, dim2: int, device) -> Tensor:
     """
     Generates an upper-triangular matrix of -inf, with zeros on diag.
     Modified from:
@@ -27,7 +27,7 @@ def generate_square_subsequent_mask(dim1: int, dim2: int) -> Tensor:
 
         A Tensor of shape [dim1, dim2]
     """
-    return torch.triu(torch.ones(dim1, dim2) * float('-inf'), diagonal=1)
+    return torch.triu(torch.ones(dim1, dim2) * float('-inf'), diagonal=1).to(device)
 
 
 def get_indices_input_target(num_obs, input_len, step_size, forecast_horizon, target_len):
