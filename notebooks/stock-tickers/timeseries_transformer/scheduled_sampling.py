@@ -21,7 +21,7 @@ n_heads = 8
 n_decoder_layers = 4
 n_encoder_layers = 4
 dec_seq_len = 2 * dataset_daily_frequency
-enc_seq_len = 7 * dataset_daily_frequency # supposing you want the model to base its forecasts on the previous 5 days of data
+enc_seq_len = 8 * dataset_daily_frequency # supposing you want the model to base its forecasts on the previous X days of data
 output_sequence_length = 2 * dataset_daily_frequency # target sequence length. If hourly data and length = 48, you predict 2 days ahead
 step_size = 1
 batch_first = False
@@ -31,7 +31,7 @@ num_predicted_features = 1
 test_size = 0.15
 validation_size = 0.15
 forecast_window = 2 * dataset_daily_frequency # supposing you're forecasting 48 hours ahead
-batch_size = 1 * forecast_window # 128
+batch_size = 4 * forecast_window # 1280
 window_size = enc_seq_len + output_sequence_length # used to slice data into sub-sequences
 
 # Define input variables
@@ -186,7 +186,7 @@ def train_model(model, training_dataloader, optimizer, loss_function, scheduled_
         loss_history.append(loss.item())
 
         print(f"Epoch: {epoch}/{epochs}, Batch: {i}/{len(training_dataloader)}, Loss: {loss.item()} Scheduled Sampling Ratio: {scheduled_sampling_ratio}")
-        
+
     return loss_history
 
 """
@@ -194,32 +194,32 @@ Put model in evaluation mode, calculate average loss across validation dataset.
 """
 def validate_model(device, model, validation_dataloader, loss_function):
         model.eval()
-        
+
         loss_history = []
 
         with torch.no_grad():
             for i, (src, _, trg_y) in enumerate(validation_dataloader):
 
                 prediction = inference.run_encoder_decoder_inference(
-                    model=model, 
-                    src=src, 
+                    model=model,
+                    src=src,
                     forecast_window=forecast_window,
                     batch_size=src.shape[1],
                     device=device
                 )
-                
-                trg_y = trg_y.permute(1, 0).unsqueeze(-1)  # Shape becomes [48, 256, 1]
 
-                print(f"Shape of prediction: {prediction.shape}")
-                print(f"Shape of target: {trg_y.shape}")
-                print(f"Shape of src: {src.shape}")
+                # trg_y = trg_y.permute(1, 0).unsqueeze(-1)  # Shape becomes [48, 256, 1]
+
+                # print(f"Shape of prediction: {prediction.shape}")
+                # print(f"Shape of target: {trg_y.shape}")
+                # print(f"Shape of src: {src.shape}")
 
 
                 loss = loss_function(trg_y, prediction)
                 loss_history.append(loss.item())
 
         return loss_history
-    
+
 """
 Demonstrating how to use the transformer model with time-series data.
 This code includes a full training loop with scheduled sampling and an evaluation step.
@@ -257,12 +257,13 @@ for epoch in range(epochs):
         scheduled_sampling_ratio = sigmoid_decay(epoch, x_mid, epochs, start_scheduled_sampling_epoch)
     else:
         scheduled_sampling_ratio = 0.0  # Use teacher-forcing before start_scheduled_sampling_epoch
-    
-    # Training Phase    
+
+    # Training Phase
     training_loss_history = train_model(model, training_dataloader, optimizer, loss_function, scheduled_sampling_ratio)
-      
-    # Validation phase  
+
+    # Validation phase
     validation_loss_history = validate_model(device, model, validation_dataloader, loss_function)
-    
+
     end_time = time.time()
     print(f"Epoch: {epoch}, Average Training Loss: {sum(training_loss_history) / len(training_loss_history)} Average Validation Loss: {sum(validation_loss_history) / len(validation_loss_history)} Time (s): {end_time - start_time}")
+

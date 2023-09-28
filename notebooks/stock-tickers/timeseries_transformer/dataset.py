@@ -145,4 +145,5 @@ class TransformerDataset(Dataset):
         # print(f"trg shape: {trg.shape}")
         # print(f"trg_y shape: {trg_y.shape}")
 
-        return src, trg, trg_y.squeeze(-1) # change size from [batch_size, target_seq_len, num_features] to [batch_size, target_seq_len]
+        return src, trg, trg_y
+        # return src, trg, trg_y.squeeze(-1) # change size from [batch_size, target_seq_len, num_features] to [batch_size, target_seq_len]

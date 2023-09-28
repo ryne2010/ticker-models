@@ -86,7 +86,7 @@ if batch_first == False:
 
     shape_before = trg.shape
     trg = trg.permute(1, 0, 2)
-    print("src shape changed from {} to {}".format(shape_before, src.shape))
+    print("trg shape changed from {} to {}".format(shape_before, trg.shape))
 
 model = tst.TimeSeriesTransformer(
     input_size=len(input_variables),
